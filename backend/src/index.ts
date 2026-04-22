@@ -135,6 +135,47 @@ app.use("/api/team", teamRouter);
 // Skills
 app.use("/api/skills", skillsRouter);
 
+// --- Face ID dummy routes ---
+
+// Check Face ID enrollment status
+app.get("/api/security/face-id/status", (_req, res) => {
+  const profile = db.prepare("SELECT face_id FROM profile WHERE id = 1").get() as
+    | { face_id: number }
+    | undefined;
+  res.json({
+    enrolled: !!profile?.face_id,
+    device_supported: true,
+  });
+});
+
+// Enroll Face ID (dummy — just flips the flag)
+app.post("/api/security/face-id/enroll", (_req, res) => {
+  setTimeout(() => {
+    db.prepare("UPDATE profile SET face_id = 1 WHERE id = 1").run();
+    res.json({ success: true, message: "Face ID enrolled successfully" });
+  }, 600);
+});
+
+// Disable Face ID
+app.post("/api/security/face-id/disable", (_req, res) => {
+  db.prepare("UPDATE profile SET face_id = 0 WHERE id = 1").run();
+  res.json({ success: true, message: "Face ID disabled" });
+});
+
+// Verify Face ID (dummy — always succeeds if enrolled)
+app.post("/api/security/face-id/verify", (_req, res) => {
+  const profile = db.prepare("SELECT face_id FROM profile WHERE id = 1").get() as
+    | { face_id: number }
+    | undefined;
+  if (!profile?.face_id) {
+    res.status(400).json({ success: false, error: "Face ID not enrolled" });
+    return;
+  }
+  setTimeout(() => {
+    res.json({ success: true, message: "Face ID verified" });
+  }, 400);
+});
+
 // --- Security / Auth dummy routes ---
 
 // Update password (dummy)

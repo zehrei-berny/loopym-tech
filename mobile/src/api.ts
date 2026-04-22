@@ -196,6 +196,27 @@ export const api = {
       method: "POST",
     }),
 
+  // Face ID
+  getFaceIdStatus: () =>
+    request<{ enrolled: boolean; device_supported: boolean }>(
+      "/api/security/face-id/status"
+    ),
+
+  enrollFaceId: () =>
+    request<{ success: boolean; message: string }>("/api/security/face-id/enroll", {
+      method: "POST",
+    }),
+
+  disableFaceId: () =>
+    request<{ success: boolean; message: string }>("/api/security/face-id/disable", {
+      method: "POST",
+    }),
+
+  verifyFaceId: () =>
+    request<{ success: boolean; message: string }>("/api/security/face-id/verify", {
+      method: "POST",
+    }),
+
   // Availability
   getAvailability: () => request<AvailabilityResponse>("/api/availability"),
 

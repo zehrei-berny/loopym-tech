@@ -10,6 +10,7 @@ import AvailabilityScreen from "./src/screens/AvailabilityScreen";
 import TeamScreen from "./src/screens/TeamScreen";
 import TeamMemberDetailScreen from "./src/screens/TeamMemberDetailScreen";
 import SkillsCertificationsScreen from "./src/screens/SkillsCertificationsScreen";
+import FaceIdScreen from "./src/screens/FaceIdScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ export default function App() {
           <Stack.Screen name="Team" component={TeamScreen} />
           <Stack.Screen name="TeamMemberDetail" component={TeamMemberDetailScreen} />
           <Stack.Screen name="SkillsCertifications" component={SkillsCertificationsScreen} />
+          <Stack.Screen name="FaceId" component={FaceIdScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="dark" />
