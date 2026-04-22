@@ -35,4 +35,15 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
   getGreeting: () => request<{ message: string }>("/api/greeting"),
+
+  updatePassword: (newPassword: string, confirmPassword: string) =>
+    request<{ success: boolean; message: string }>("/api/security/password", {
+      method: "PUT",
+      body: { newPassword, confirmPassword },
+    }),
+
+  deactivateAccount: () =>
+    request<{ success: boolean; message: string }>("/api/security/deactivate", {
+      method: "POST",
+    }),
 };
