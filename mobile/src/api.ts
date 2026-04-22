@@ -32,6 +32,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.json() as Promise<T>;
 }
 
+// ── Profile Types ───────────────────────────────────────────────────
 export type Profile = {
   id: number;
   name: string;
@@ -44,10 +45,75 @@ export type Profile = {
   face_id: number;
 };
 
+// ── Payment Types ───────────────────────────────────────────────────
+export type EarningsData = {
+  today_earnings: number;
+  current_month_earnings: number;
+  last_month_earnings: number;
+  current_month: number;
+  current_year: number;
+  has_payout_method: boolean;
+};
+
+export type MonthlySummary = {
+  year: number;
+  months: { month: number; total: number }[];
+};
+
+export type DailySummary = {
+  year: number;
+  month: number;
+  days: { day: string; total: number }[];
+  month_total: number;
+};
+
+export type Payment = {
+  id: number;
+  payer_name: string;
+  amount: number;
+  status: string;
+  date: string;
+};
+
+export type PaymentHistoryData = {
+  year: number;
+  month: number;
+  dates: { date: string; payments: Payment[] }[];
+};
+
+// ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
   getGreeting: () => request<{ message: string }>("/api/greeting"),
+
+  // Profile
   getProfile: () => request<Profile>("/api/profile"),
   updateProfile: (data: Partial<Omit<Profile, "id">>) =>
     request<Profile>("/api/profile", { method: "PUT", body: data }),
+
+  // Payments
+  getEarnings: () => request<EarningsData>("/api/payments/earnings"),
+
+  getMonthlySummary: (year?: number) =>
+    request<MonthlySummary>(
+      `/api/payments/monthly-summary${year ? `?year=${year}` : ""}`
+    ),
+
+  getDailySummary: (year: number, month: number) =>
+    request<DailySummary>(
+      `/api/payments/daily-summary?year=${year}&month=${month}`
+    ),
+
+  getPaymentHistory: (year: number, month: number) =>
+    request<PaymentHistoryData>(
+      `/api/payments/history?year=${year}&month=${month}`
+    ),
+
+  addPayoutMethod: (
+    data: { type?: string; label?: string; last_four?: string } = {}
+  ) =>
+    request<{ id: number }>("/api/payments/payout-method", {
+      method: "POST",
+      body: data,
+    }),
 };

@@ -135,7 +135,11 @@ function EditableField({
 
 // --- Main Profile Screen ---
 
-export default function ProfileScreen() {
+type ProfileScreenProps = {
+  onNavigatePayments?: () => void;
+};
+
+export default function ProfileScreen({ onNavigatePayments }: ProfileScreenProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -304,10 +308,10 @@ export default function ProfileScreen() {
           </View>
         </View>
         <View style={cardStyles.row}>
-          <View style={cardStyles.card}>
+          <TouchableOpacity style={cardStyles.card} onPress={onNavigatePayments}>
             <PaymentsIcon />
             <Text style={cardStyles.cardLabel}>Payments</Text>
-          </View>
+          </TouchableOpacity>
           <View style={cardStyles.card}>
             <MyTeamIcon />
             <Text style={cardStyles.cardLabel}>My team</Text>

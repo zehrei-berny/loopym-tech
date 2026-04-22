@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import db from "./db";
+import paymentsRouter from "./payments";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,6 +65,9 @@ app.put("/api/profile", (req, res) => {
   const profile = db.prepare("SELECT * FROM profile WHERE id = 1").get();
   res.json(profile);
 });
+
+// Payments
+app.use("/api/payments", paymentsRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
