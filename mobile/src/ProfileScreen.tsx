@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActionSheetIOS,
   ActivityIndicator,
   Alert,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -13,6 +15,7 @@ import {
   View,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 import { api, Profile } from "./api";
 
 // --- Icon components (SVG-style using simple RN shapes) ---
@@ -183,6 +186,70 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     fetchProfile();
   };
 
+  const launchCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Camera access is needed to take a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      try {
+        const updated = await api.uploadAvatar(result.assets[0].uri);
+        setProfile(updated);
+      } catch {
+        Alert.alert("Error", "Could not upload photo");
+      }
+    }
+  };
+
+  const launchLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission required", "Photo library access is needed to choose a photo.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled) {
+      try {
+        const updated = await api.uploadAvatar(result.assets[0].uri);
+        setProfile(updated);
+      } catch {
+        Alert.alert("Error", "Could not upload photo");
+      }
+    }
+  };
+
+  const pickAvatar = () => {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Cancel", "Take Photo", "Choose from Library"],
+          cancelButtonIndex: 0,
+        },
+        (index) => {
+          if (index === 1) launchCamera();
+          else if (index === 2) launchLibrary();
+        },
+      );
+    } else {
+      Alert.alert("Change Profile Photo", undefined, [
+        { text: "Take Photo", onPress: launchCamera },
+        { text: "Choose from Library", onPress: launchLibrary },
+        { text: "Cancel", style: "cancel" },
+      ]);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -226,7 +293,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Profile card */}
       <View style={styles.profileCard}>
         {/* Name + company + rating */}
-        <View style={styles.nameSection}>
+        <TouchableOpacity style={styles.nameSection} onPress={() => setEditingProfile(!editingProfile)}>
           <Text style={styles.profileName}>{profile.name}</Text>
           <Text style={styles.profileCompany}>{profile.company}</Text>
           <View style={styles.ratingRow}>
@@ -235,7 +302,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             ))}
             <Text style={styles.ratingText}>{profile.rating.toFixed(2)}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Stats + avatar row */}
         <View style={styles.statsRow}>
@@ -261,7 +328,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             )}
             <TouchableOpacity
               style={styles.editAvatarButton}
-              onPress={() => setEditingProfile(!editingProfile)}
+              onPress={pickAvatar}
             >
               <EditIcon />
             </TouchableOpacity>

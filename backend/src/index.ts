@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
+import multer from "multer";
 import db from "./db";
 import paymentsRouter from "./payments";
 import teamRouter from "./team";
@@ -11,6 +13,22 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
+// Configure multer for avatar uploads
+const avatarStorage = multer.diskStorage({
+  destination: path.join(__dirname, "..", "uploads"),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname) || ".jpg";
+    cb(null, `avatar-${Date.now()}${ext}`);
+  },
+});
+const avatarUpload = multer({
+  storage: avatarStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+});
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -123,6 +141,18 @@ app.put("/api/profile", (req, res) => {
     ...values
   );
 
+  const profile = db.prepare("SELECT * FROM profile WHERE id = 1").get();
+  res.json(profile);
+});
+
+// Upload avatar
+app.post("/api/profile/avatar", avatarUpload.single("avatar"), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: "No file uploaded" });
+    return;
+  }
+  const avatarUrl = `http://localhost:${PORT}/uploads/${req.file.filename}`;
+  db.prepare("UPDATE profile SET avatar_url = ? WHERE id = 1").run(avatarUrl);
   const profile = db.prepare("SELECT * FROM profile WHERE id = 1").get();
   res.json(profile);
 });

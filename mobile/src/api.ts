@@ -164,6 +164,21 @@ export const api = {
   updateProfile: (data: Partial<Omit<Profile, "id">>) =>
     request<Profile>("/api/profile", { method: "PUT", body: data }),
 
+  uploadAvatar: async (uri: string): Promise<Profile> => {
+    const form = new FormData();
+    const name = uri.split("/").pop() || "avatar.jpg";
+    const match = /\.(\w+)$/.exec(name);
+    const type = match ? `image/${match[1]}` : "image/jpeg";
+    form.append("avatar", { uri, name, type } as unknown as Blob);
+
+    const res = await fetch(`${API_BASE_URL}/api/profile/avatar`, {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return res.json() as Promise<Profile>;
+  },
+
   // Payments
   getEarnings: () => request<EarningsData>("/api/payments/earnings"),
 
