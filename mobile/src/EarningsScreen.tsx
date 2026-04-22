@@ -16,6 +16,11 @@ const MONTH_NAMES = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
+const MONTH_NAMES_FULL = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 type Props = {
   navigation: any;
 };
@@ -24,9 +29,12 @@ export default function EarningsScreen({ navigation }: Props) {
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [monthly, setMonthly] = useState<MonthlySummary | null>(null);
   const [daily, setDaily] = useState<DailySummary | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const currentYear = earnings?.current_year ?? new Date().getFullYear();
 
   const fetchData = useCallback(async () => {
     try {
@@ -37,9 +45,13 @@ export default function EarningsScreen({ navigation }: Props) {
       setEarnings(e);
       setMonthly(m);
 
-      const d = await api.getDailySummary(e.current_year, e.current_month);
+      // Default to current month per Figma annotation
+      const month = e.current_month;
+      setSelectedMonth(month);
+
+      const d = await api.getDailySummary(e.current_year, month);
       setDaily(d);
-      if (d.days.length > 0 && !selectedDay) {
+      if (d.days.length > 0) {
         setSelectedDay(d.days[0].day);
       }
     } catch {
@@ -59,6 +71,26 @@ export default function EarningsScreen({ navigation }: Props) {
     fetchData();
   }, [fetchData]);
 
+  // When selected month changes, fetch new daily data
+  const handleSelectMonth = useCallback(
+    async (month: number) => {
+      if (month === selectedMonth) return;
+      setSelectedMonth(month);
+      setSelectedDay(null);
+      setDaily(null);
+      try {
+        const d = await api.getDailySummary(currentYear, month);
+        setDaily(d);
+        if (d.days.length > 0) {
+          setSelectedDay(d.days[0].day);
+        }
+      } catch {
+        // silently fail
+      }
+    },
+    [selectedMonth, currentYear]
+  );
+
   const maxMonthlyTotal = monthly
     ? Math.max(...monthly.months.map((m) => m.total), 1)
     : 1;
@@ -73,6 +105,14 @@ export default function EarningsScreen({ navigation }: Props) {
     const monthName = MONTH_NAMES[month - 1];
     return `${monthName} ${day}, ${year}`;
   };
+
+  // Build list of months that have data, in reverse order (most recent first)
+  const monthsWithData = monthly
+    ? monthly.months
+        .filter((m) => m.total > 0)
+        .map((m) => m.month)
+        .reverse()
+    : [];
 
   if (loading) {
     return (
@@ -98,7 +138,7 @@ export default function EarningsScreen({ navigation }: Props) {
         {/* Page title */}
         <Text style={styles.pageTitle}>Earnings</Text>
 
-        {/* Payout method card */}
+        {/* Payout method card - shown when no payout method exists */}
         {earnings && !earnings.has_payout_method && (
           <View style={styles.payoutCard}>
             <View style={styles.payoutHeader}>
@@ -147,7 +187,7 @@ export default function EarningsScreen({ navigation }: Props) {
               </Text>
               <Text style={styles.detailLabel}>Last month's earnings</Text>
               <Text style={styles.detailLabel}>
-                {MONTH_NAMES[((earnings?.current_month ?? 2) - 2 + 12) % 12]},{" "}
+                {MONTH_NAMES_FULL[((earnings?.current_month ?? 2) - 2 + 12) % 12]},{" "}
                 {earnings?.current_year ?? 2026}
               </Text>
             </View>
@@ -160,18 +200,23 @@ export default function EarningsScreen({ navigation }: Props) {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.barsScroll}>
             <View style={styles.barsContainer}>
               {monthly.months.map((m) => {
-                const isCurrentMonth = m.month === (earnings?.current_month ?? 0);
+                const isSelected = m.month === selectedMonth;
                 const barHeight = m.total > 0
                   ? Math.max(32, (m.total / maxMonthlyTotal) * 80)
                   : 32;
                 return (
-                  <View key={m.month} style={styles.barColumn}>
+                  <TouchableOpacity
+                    key={m.month}
+                    style={styles.barColumn}
+                    onPress={() => handleSelectMonth(m.month)}
+                    activeOpacity={0.7}
+                  >
                     <View
                       style={[
                         styles.bar,
                         {
                           height: barHeight,
-                          backgroundColor: isCurrentMonth
+                          backgroundColor: isSelected
                             ? colors.brandStrong
                             : colors.bgPrimaryMedium,
                         },
@@ -180,7 +225,7 @@ export default function EarningsScreen({ navigation }: Props) {
                       <Text
                         style={[
                           styles.barLabel,
-                          { color: isCurrentMonth ? "#fff" : colors.textBody },
+                          { color: isSelected ? "#fff" : colors.textBody },
                         ]}
                       >
                         {formatCurrency(m.total)}
@@ -190,7 +235,7 @@ export default function EarningsScreen({ navigation }: Props) {
                       style={[
                         styles.monthLabel,
                         {
-                          color: isCurrentMonth
+                          color: isSelected
                             ? colors.textHeading
                             : colors.textDisabled,
                         },
@@ -198,7 +243,7 @@ export default function EarningsScreen({ navigation }: Props) {
                     >
                       {MONTH_NAMES[m.month - 1]}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -230,7 +275,7 @@ export default function EarningsScreen({ navigation }: Props) {
         )}
 
         {/* Day / month total details */}
-        {daily && selectedDay && (
+        {daily && selectedDay && selectedMonth && (
           <View style={styles.dayDetailsRow}>
             <View style={styles.detailItem}>
               <Text style={styles.dayDetailLabel}>
@@ -252,6 +297,30 @@ export default function EarningsScreen({ navigation }: Props) {
         <TouchableOpacity style={styles.historyButton} onPress={() => navigation.navigate("PaymentHistory")}>
           <Text style={styles.historyButtonText}>View payment history</Text>
         </TouchableOpacity>
+
+        {/* Month filter chips */}
+        {monthsWithData.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.monthChipsScroll}>
+            <View style={styles.chipsRow}>
+              {monthsWithData.map((m) => {
+                const isSelected = m === selectedMonth;
+                return (
+                  <TouchableOpacity
+                    key={m}
+                    style={[styles.chip, isSelected && styles.chipSelected]}
+                    onPress={() => handleSelectMonth(m)}
+                  >
+                    <Text
+                      style={[styles.chipText, isSelected && styles.chipTextSelected]}
+                    >
+                      {MONTH_NAMES[m - 1]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        )}
       </ScrollView>
     </View>
   );
@@ -270,6 +339,7 @@ const colors = {
   textBody: "#4a5565",
   textSubtle: "#6a7282",
   textDisabled: "#9ea5b3",
+  textLight: "#ffffff",
   brandStrong: "#1e2939",
 };
 
@@ -312,6 +382,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 20,
     letterSpacing: -0.75,
+    lineHeight: 34,
   },
   // Payout method card
   payoutCard: {
@@ -357,6 +428,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.textHeading,
     letterSpacing: 0.175,
+    lineHeight: 22,
   },
   // Earnings card
   earningsCard: {
@@ -550,11 +622,18 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: "center",
+    marginBottom: 24,
   },
   historyButtonText: {
     fontSize: 14,
     fontWeight: "500",
     color: colors.textHeading,
     letterSpacing: 0.175,
+    lineHeight: 22,
+  },
+  // Month filter chips
+  monthChipsScroll: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
   },
 });
