@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "mcp__bb3f64ae-1d17-4a6d-adaf-3e3bb5d91714__whoami"
+      "mcp__bb3f64ae-1d17-4a6d-adaf-3e3bb5d91714__whoami",
+      "mcp__plugin_figma_figma__get_metadata",
+      "mcp__plugin_figma_figma__get_screenshot",
+      "mcp__plugin_figma_figma__use_figma",
+      "mcp__plugin_figma_figma__get_design_context"
     ]
   }
 }
