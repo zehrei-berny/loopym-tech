@@ -7,6 +7,8 @@ import EarningsScreen from "./src/EarningsScreen";
 import PaymentHistoryScreen from "./src/PaymentHistoryScreen";
 import LoginSecurityScreen from "./src/screens/LoginSecurityScreen";
 import AvailabilityScreen from "./src/screens/AvailabilityScreen";
+import TeamScreen from "./src/screens/TeamScreen";
+import TeamMemberDetailScreen from "./src/screens/TeamMemberDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +26,8 @@ export default function App() {
               <AvailabilityScreen onBack={() => navigation.goBack()} />
             )}
           </Stack.Screen>
+          <Stack.Screen name="Team" component={TeamScreen} />
+          <Stack.Screen name="TeamMemberDetail" component={TeamMemberDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="dark" />

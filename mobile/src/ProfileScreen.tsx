@@ -312,10 +312,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
             <PaymentsIcon />
             <Text style={cardStyles.cardLabel}>Payments</Text>
           </TouchableOpacity>
-          <View style={cardStyles.card}>
+          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Team")}>
             <MyTeamIcon />
             <Text style={cardStyles.cardLabel}>My team</Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={cardStyles.fullRow}>
           <View style={cardStyles.cardFull}>

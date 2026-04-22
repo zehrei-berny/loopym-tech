@@ -42,6 +42,19 @@ db.exec(`
     date        TEXT NOT NULL,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS team_members (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name        TEXT NOT NULL,
+    last_name         TEXT NOT NULL,
+    email             TEXT NOT NULL DEFAULT '',
+    phone             TEXT NOT NULL DEFAULT '',
+    role              TEXT NOT NULL DEFAULT '',
+    avatar_url        TEXT NOT NULL DEFAULT '',
+    status            TEXT NOT NULL DEFAULT 'pending',
+    booked_percentage INTEGER NOT NULL DEFAULT 0,
+    created_at        TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default profile if empty
@@ -88,6 +101,23 @@ if (paymentCount.c === 0) {
   });
 
   seedPayments();
+}
+
+// Seed team members if empty
+const teamCount = db.prepare("SELECT COUNT(*) as c FROM team_members").get() as { c: number };
+if (teamCount.c === 0) {
+  const insertMember = db.prepare(
+    "INSERT INTO team_members (first_name, last_name, email, phone, role, avatar_url, status, booked_percentage) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  );
+
+  const seedTeam = db.transaction(() => {
+    insertMember.run("Fred", "Rogers", "fred@email.com", "089 876 6534", "Leak Detection Specialist", "", "active", 85);
+    insertMember.run("Steve", "Brown", "steve@email.com", "089 555 1234", "Filter Change Technician", "", "inactive", 43);
+    insertMember.run("Jason", "Bourne", "jason@email.com", "089 222 9876", "Algae Elimination Genius", "", "active", 43);
+    insertMember.run("Michelle", "Green", "michelle@email.com", "089 333 4567", "Pool Chemical Distribution Engineer", "", "inactive", 98);
+  });
+
+  seedTeam();
 }
 
 export default db;
