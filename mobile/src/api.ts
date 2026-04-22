@@ -32,7 +32,52 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.json() as Promise<T>;
 }
 
+export type DaySlot = {
+  day: string;
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+};
+
+export type TimeOff = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+};
+
+export type AvailabilityResponse = {
+  slots: DaySlot[];
+  summary: string;
+  timeOffs: TimeOff[];
+};
+
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
   getGreeting: () => request<{ message: string }>("/api/greeting"),
+
+  getAvailability: () => request<AvailabilityResponse>("/api/availability"),
+
+  updateAvailability: (slots: DaySlot[]) =>
+    request<AvailabilityResponse>("/api/availability", {
+      method: "PUT",
+      body: { slots },
+    }),
+
+  updateDay: (day: string, update: Partial<DaySlot>) =>
+    request<AvailabilityResponse>(`/api/availability/${day}`, {
+      method: "PUT",
+      body: update,
+    }),
+
+  createTimeOff: (startDate: string, endDate: string, days: number) =>
+    request<AvailabilityResponse>("/api/availability/time-off", {
+      method: "POST",
+      body: { startDate, endDate, days },
+    }),
+
+  cancelTimeOff: (id: string) =>
+    request<AvailabilityResponse>(`/api/availability/time-off/${id}`, {
+      method: "DELETE",
+    }),
 };
