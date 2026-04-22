@@ -15,6 +15,7 @@ import PaymentsScreen from "./src/screens/PaymentsScreen";
 import PayoutMethodsScreen from "./src/screens/PayoutMethodsScreen";
 import AddPayoutMethodScreen from "./src/screens/AddPayoutMethodScreen";
 import AccountDetailsScreen from "./src/screens/AccountDetailsScreen";
+import FaceIdScreen from "./src/screens/FaceIdScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ export default function App() {
           <Stack.Screen name="TeamMemberDetail" component={TeamMemberDetailScreen} />
           <Stack.Screen name="SkillsCertifications" component={SkillsCertificationsScreen} />
           <Stack.Screen name="PersonalInfo" component={PersonalInfoScreen} />
+          <Stack.Screen name="FaceId" component={FaceIdScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="dark" />

@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { api, Profile } from "./api";
 
 // --- Icon components (SVG-style using simple RN shapes) ---
@@ -160,6 +161,13 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Re-fetch profile when screen regains focus (e.g. returning from FaceIdScreen)
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile])
+  );
 
   const handleUpdate = async (fields: Partial<Omit<Profile, "id">>) => {
     try {
@@ -342,7 +350,15 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           <Text style={styles.toggleLabel}>Log in using Face ID</Text>
           <Switch
             value={!!profile.face_id}
-            onValueChange={(v) => handleUpdate({ face_id: v ? 1 : 0 })}
+            onValueChange={(v) => {
+              if (v) {
+                navigation.navigate("FaceId");
+              } else {
+                api.disableFaceId().then(() => {
+                  handleUpdate({ face_id: 0 });
+                });
+              }
+            }}
             trackColor={{ false: "#d1d5dc", true: "#072929" }}
             thumbColor="#fff"
           />
