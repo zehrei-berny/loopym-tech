@@ -82,6 +82,14 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.navItemText}>Log in & security</Text>
           <Text style={styles.navItemChevron}>{">"}</Text>
         </Pressable>
+        <Pressable
+          style={[styles.navItem, { marginTop: 8 }]}
+          onPress={() => navigation.navigate("Availability")}
+        >
+          <Text style={styles.navItemIcon}>{"📅"}</Text>
+          <Text style={styles.navItemText}>Availability</Text>
+          <Text style={styles.navItemChevron}>{">"}</Text>
+        </Pressable>
       </View>
     </View>
   );

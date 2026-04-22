@@ -81,6 +81,27 @@ export type PaymentHistoryData = {
   dates: { date: string; payments: Payment[] }[];
 };
 
+// ── Availability Types ──────────────────────────────────────────────
+export type DaySlot = {
+  day: string;
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+};
+
+export type TimeOff = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+};
+
+export type AvailabilityResponse = {
+  slots: DaySlot[];
+  summary: string;
+  timeOffs: TimeOff[];
+};
+
 // ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
@@ -127,5 +148,31 @@ export const api = {
   deactivateAccount: () =>
     request<{ success: boolean; message: string }>("/api/security/deactivate", {
       method: "POST",
+    }),
+
+  // Availability
+  getAvailability: () => request<AvailabilityResponse>("/api/availability"),
+
+  updateAvailability: (slots: DaySlot[]) =>
+    request<AvailabilityResponse>("/api/availability", {
+      method: "PUT",
+      body: { slots },
+    }),
+
+  updateDay: (day: string, update: Partial<DaySlot>) =>
+    request<AvailabilityResponse>(`/api/availability/${day}`, {
+      method: "PUT",
+      body: update,
+    }),
+
+  createTimeOff: (startDate: string, endDate: string, days: number) =>
+    request<AvailabilityResponse>("/api/availability/time-off", {
+      method: "POST",
+      body: { startDate, endDate, days },
+    }),
+
+  cancelTimeOff: (id: string) =>
+    request<AvailabilityResponse>(`/api/availability/time-off/${id}`, {
+      method: "DELETE",
     }),
 };
