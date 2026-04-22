@@ -61,9 +61,10 @@ if (paymentCount.c === 0) {
   );
 
   const seedPayments = db.transaction(() => {
-    // April 2026
+    // April 2026 — current month
+    insert.run("Robert Power", 945.55, "pending", "2026-04-22");
     insert.run("Robert Power", 1567.89, "pending", "2026-04-04");
-    insert.run("Robert Power", 2324.50, "cleared", "2026-04-04");
+    insert.run("Sarah Mitchell", 2324.50, "cleared", "2026-04-04");
     insert.run("Robert Power", 982.55, "cleared", "2026-04-03");
     insert.run("Robert Power", 1952.50, "cleared", "2026-04-02");
     insert.run("Sarah Mitchell", 1245.00, "cleared", "2026-04-01");
@@ -75,16 +76,26 @@ if (paymentCount.c === 0) {
     insert.run("Robert Power", 980.00, "cleared", "2026-03-15");
     insert.run("Sarah Mitchell", 1675.50, "cleared", "2026-03-08");
     insert.run("Robert Power", 845.50, "cleared", "2026-03-01");
+    insert.run("Sarah Mitchell", 1200.00, "cleared", "2026-03-12");
+    insert.run("Robert Power", 615.75, "cleared", "2026-03-06");
 
     // February 2026
     insert.run("Robert Power", 1320.00, "cleared", "2026-02-25");
     insert.run("Sarah Mitchell", 960.00, "cleared", "2026-02-18");
     insert.run("Robert Power", 1100.50, "cleared", "2026-02-10");
+    insert.run("Sarah Mitchell", 1450.00, "cleared", "2026-02-04");
+    insert.run("Robert Power", 1192.90, "cleared", "2026-02-12");
 
     // January 2026
     insert.run("Robert Power", 2050.00, "cleared", "2026-01-28");
     insert.run("Sarah Mitchell", 1500.00, "cleared", "2026-01-20");
-    insert.run("Robert Power", 839.56, "cleared", "2026-01-12");
+    insert.run("Robert Power", 845.50, "cleared", "2026-01-01");
+    insert.run("Sarah Mitchell", 1280.00, "cleared", "2026-01-06");
+    insert.run("Robert Power", 1750.00, "cleared", "2026-01-08");
+    insert.run("Sarah Mitchell", 1150.00, "cleared", "2026-01-03");
+    insert.run("Robert Power", 931.17, "cleared", "2026-01-09");
+    insert.run("Sarah Mitchell", 2080.00, "cleared", "2026-01-04");
+    insert.run("Robert Power", 1485.00, "cleared", "2026-01-12");
   });
 
   seedPayments();
