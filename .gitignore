@@ -40,3 +40,6 @@ mobile/android
 
 # backend build output
 backend/dist/
+
+# backend database
+backend/data/

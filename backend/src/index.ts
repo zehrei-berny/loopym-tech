@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import db from "./db";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +16,53 @@ app.get("/health", (_req, res) => {
 // Example API route
 app.get("/api/greeting", (_req, res) => {
   res.json({ message: "Hello from the backend!" });
+});
+
+// Get profile
+app.get("/api/profile", (_req, res) => {
+  const profile = db.prepare("SELECT * FROM profile WHERE id = 1").get();
+  if (!profile) {
+    res.status(404).json({ error: "Profile not found" });
+    return;
+  }
+  res.json(profile);
+});
+
+// Update profile
+app.put("/api/profile", (req, res) => {
+  const allowed = [
+    "name",
+    "company",
+    "avatar_url",
+    "rating",
+    "total_earnings",
+    "jobs_completed",
+    "push_notifications",
+    "face_id",
+  ];
+
+  const updates: string[] = [];
+  const values: unknown[] = [];
+
+  for (const key of allowed) {
+    if (key in req.body) {
+      updates.push(`${key} = ?`);
+      values.push(req.body[key]);
+    }
+  }
+
+  if (updates.length === 0) {
+    res.status(400).json({ error: "No valid fields to update" });
+    return;
+  }
+
+  values.push(1); // WHERE id = 1
+  db.prepare(`UPDATE profile SET ${updates.join(", ")} WHERE id = ?`).run(
+    ...values
+  );
+
+  const profile = db.prepare("SELECT * FROM profile WHERE id = 1").get();
+  res.json(profile);
 });
 
 app.listen(PORT, () => {

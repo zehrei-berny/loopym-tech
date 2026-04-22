@@ -32,7 +32,22 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.json() as Promise<T>;
 }
 
+export type Profile = {
+  id: number;
+  name: string;
+  company: string;
+  avatar_url: string;
+  rating: number;
+  total_earnings: number;
+  jobs_completed: number;
+  push_notifications: number;
+  face_id: number;
+};
+
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
   getGreeting: () => request<{ message: string }>("/api/greeting"),
+  getProfile: () => request<Profile>("/api/profile"),
+  updateProfile: (data: Partial<Omit<Profile, "id">>) =>
+    request<Profile>("/api/profile", { method: "PUT", body: data }),
 };
