@@ -6,6 +6,8 @@ import ProfileScreen from "./src/ProfileScreen";
 import EarningsScreen from "./src/EarningsScreen";
 import PaymentHistoryScreen from "./src/PaymentHistoryScreen";
 import LoginSecurityScreen from "./src/screens/LoginSecurityScreen";
+import TeamScreen from "./src/screens/TeamScreen";
+import TeamMemberDetailScreen from "./src/screens/TeamMemberDetailScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,6 +20,8 @@ export default function App() {
           <Stack.Screen name="Earnings" component={EarningsScreen} />
           <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
           <Stack.Screen name="LoginSecurity" component={LoginSecurityScreen} />
+          <Stack.Screen name="Team" component={TeamScreen} />
+          <Stack.Screen name="TeamMemberDetail" component={TeamMemberDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="dark" />

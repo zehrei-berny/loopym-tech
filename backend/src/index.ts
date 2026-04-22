@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import db from "./db";
 import paymentsRouter from "./payments";
+import teamRouter from "./team";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -68,6 +69,9 @@ app.put("/api/profile", (req, res) => {
 
 // Payments
 app.use("/api/payments", paymentsRouter);
+
+// Team
+app.use("/api/team", teamRouter);
 
 // --- Security / Auth dummy routes ---
 

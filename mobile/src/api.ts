@@ -81,6 +81,28 @@ export type PaymentHistoryData = {
   dates: { date: string; payments: Payment[] }[];
 };
 
+// ── Team Types ─────────────────────────────────────────────────────
+export type TeamMember = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  role: string;
+  avatar_url: string;
+  status: "active" | "inactive" | "pending";
+  booked_percentage: number;
+  created_at: string;
+};
+
+export type AddTeamMemberData = {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  role?: string;
+};
+
 // ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
@@ -115,6 +137,22 @@ export const api = {
     request<{ id: number }>("/api/payments/payout-method", {
       method: "POST",
       body: data,
+    }),
+
+  // Team
+  getTeamMembers: (search?: string) =>
+    request<{ members: TeamMember[] }>(
+      `/api/team${search ? `?search=${encodeURIComponent(search)}` : ""}`
+    ),
+
+  getTeamMember: (id: number) => request<TeamMember>(`/api/team/${id}`),
+
+  addTeamMember: (data: AddTeamMemberData) =>
+    request<TeamMember>("/api/team", { method: "POST", body: data }),
+
+  resendInvite: (id: number) =>
+    request<{ success: boolean; message: string }>(`/api/team/${id}/resend-invite`, {
+      method: "POST",
     }),
 
   // Security
