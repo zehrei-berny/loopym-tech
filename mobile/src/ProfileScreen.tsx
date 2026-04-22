@@ -308,7 +308,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </TouchableOpacity>
         </View>
         <View style={cardStyles.row}>
-          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Earnings")}>
+          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Payments")}>
             <PaymentsIcon />
             <Text style={cardStyles.cardLabel}>Payments</Text>
           </TouchableOpacity>

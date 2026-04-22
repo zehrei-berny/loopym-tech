@@ -131,21 +131,87 @@ router.get("/history", (req, res) => {
   res.json({ year: Number(year), month: Number(month), dates });
 });
 
-// ── POST /api/payments/payout-method ───────────────────────────────
-// Dummy: add a payout method
-router.post("/payout-method", (req, res) => {
-  const { type = "bank", label = "Bank Account", last_four = "4242" } = req.body || {};
-
-  const result = db
-    .prepare("INSERT INTO payout_methods (type, label, last_four, is_default) VALUES (?, ?, ?, 1)")
-    .run(type, label, last_four);
-
-  res.json({ id: result.lastInsertRowid, type, label, last_four, is_default: true });
-});
-
 // ── GET /api/payments/payout-methods ───────────────────────────────
 router.get("/payout-methods", (_req, res) => {
-  const rows = db.prepare("SELECT * FROM payout_methods ORDER BY is_default DESC").all();
+  const rows = db.prepare("SELECT * FROM payout_methods ORDER BY is_default DESC, id ASC").all();
+  res.json(rows);
+});
+
+// ── GET /api/payments/payout-methods/:id ──────────────────────────
+router.get("/payout-methods/:id", (req, res) => {
+  const row = db.prepare("SELECT * FROM payout_methods WHERE id = ?").get(req.params.id);
+  if (!row) {
+    res.status(404).json({ error: "Payout method not found" });
+    return;
+  }
+  res.json(row);
+});
+
+// ── POST /api/payments/payout-method ──────────────────────────────
+router.post("/payout-method", (req, res) => {
+  const {
+    type = "bank",
+    label = "Bank account in AUSD",
+    currency = "AUSD",
+    account_holder_name = "",
+    routing_number = "",
+    account_number = "",
+    account_type = "savings",
+  } = req.body || {};
+
+  // If this is the first method, make it default
+  const count = (db.prepare("SELECT COUNT(*) as c FROM payout_methods").get() as { c: number }).c;
+  const isDefault = count === 0 ? 1 : 0;
+
+  const result = db
+    .prepare(
+      `INSERT INTO payout_methods (type, label, currency, account_holder_name, routing_number, account_number, account_type, is_default)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(type, label, currency, account_holder_name, routing_number, account_number, account_type, isDefault);
+
+  const row = db.prepare("SELECT * FROM payout_methods WHERE id = ?").get(result.lastInsertRowid);
+  res.status(201).json(row);
+});
+
+// ── PUT /api/payments/payout-methods/:id/default ──────────────────
+router.put("/payout-methods/:id/default", (req, res) => {
+  const row = db.prepare("SELECT * FROM payout_methods WHERE id = ?").get(req.params.id);
+  if (!row) {
+    res.status(404).json({ error: "Payout method not found" });
+    return;
+  }
+
+  db.prepare("UPDATE payout_methods SET is_default = 0").run();
+  db.prepare("UPDATE payout_methods SET is_default = 1 WHERE id = ?").run(req.params.id);
+
+  const rows = db.prepare("SELECT * FROM payout_methods ORDER BY is_default DESC, id ASC").all();
+  res.json(rows);
+});
+
+// ── DELETE /api/payments/payout-methods/:id ────────────────────────
+router.delete("/payout-methods/:id", (req, res) => {
+  const row = db.prepare("SELECT * FROM payout_methods WHERE id = ?").get(req.params.id) as
+    | { id: number; is_default: number }
+    | undefined;
+  if (!row) {
+    res.status(404).json({ error: "Payout method not found" });
+    return;
+  }
+
+  db.prepare("DELETE FROM payout_methods WHERE id = ?").run(req.params.id);
+
+  // If deleted method was default, promote the next one
+  if (row.is_default) {
+    const next = db.prepare("SELECT id FROM payout_methods ORDER BY id ASC LIMIT 1").get() as
+      | { id: number }
+      | undefined;
+    if (next) {
+      db.prepare("UPDATE payout_methods SET is_default = 1 WHERE id = ?").run(next.id);
+    }
+  }
+
+  const rows = db.prepare("SELECT * FROM payout_methods ORDER BY is_default DESC, id ASC").all();
   res.json(rows);
 });
 

@@ -149,10 +149,7 @@ export default function EarningsScreen({ navigation }: Props) {
             </View>
             <TouchableOpacity
               style={styles.payoutButton}
-              onPress={async () => {
-                await api.addPayoutMethod();
-                fetchData();
-              }}
+              onPress={() => navigation.navigate("AddPayoutMethod")}
             >
               <Text style={styles.payoutButtonText}>Add payout method</Text>
             </TouchableOpacity>
