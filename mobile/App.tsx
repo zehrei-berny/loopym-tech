@@ -1,29 +1,26 @@
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import ProfileScreen from "./src/ProfileScreen";
 import EarningsScreen from "./src/EarningsScreen";
 import PaymentHistoryScreen from "./src/PaymentHistoryScreen";
+import LoginSecurityScreen from "./src/screens/LoginSecurityScreen";
 
-type Screen = "profile" | "earnings" | "history";
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("profile");
-
   return (
-    <>
-      {screen === "profile" && (
-        <ProfileScreen onNavigatePayments={() => setScreen("earnings")} />
-      )}
-      {screen === "earnings" && (
-        <EarningsScreen
-          onBack={() => setScreen("profile")}
-          onViewHistory={() => setScreen("history")}
-        />
-      )}
-      {screen === "history" && (
-        <PaymentHistoryScreen onBack={() => setScreen("earnings")} />
-      )}
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Earnings" component={EarningsScreen} />
+          <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} />
+          <Stack.Screen name="LoginSecurity" component={LoginSecurityScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
       <StatusBar style="dark" />
-    </>
+    </SafeAreaProvider>
   );
 }

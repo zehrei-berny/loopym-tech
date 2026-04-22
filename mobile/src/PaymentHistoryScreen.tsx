@@ -17,10 +17,10 @@ const MONTH_NAMES = [
 ];
 
 type Props = {
-  onBack: () => void;
+  navigation: any;
 };
 
-export default function PaymentHistoryScreen({ onBack }: Props) {
+export default function PaymentHistoryScreen({ navigation }: Props) {
   const [data, setData] = useState<PaymentHistoryData | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
@@ -86,7 +86,7 @@ export default function PaymentHistoryScreen({ onBack }: Props) {
       >
         {/* Navigation header */}
         <View style={styles.navHeader}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backArrow}>{"←"}</Text>
           </TouchableOpacity>
         </View>

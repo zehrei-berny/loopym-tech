@@ -17,11 +17,10 @@ const MONTH_NAMES = [
 ];
 
 type Props = {
-  onBack: () => void;
-  onViewHistory: () => void;
+  navigation: any;
 };
 
-export default function EarningsScreen({ onBack, onViewHistory }: Props) {
+export default function EarningsScreen({ navigation }: Props) {
   const [earnings, setEarnings] = useState<EarningsData | null>(null);
   const [monthly, setMonthly] = useState<MonthlySummary | null>(null);
   const [daily, setDaily] = useState<DailySummary | null>(null);
@@ -91,7 +90,7 @@ export default function EarningsScreen({ onBack, onViewHistory }: Props) {
       >
         {/* Navigation header */}
         <View style={styles.navHeader}>
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Text style={styles.backArrow}>{"←"}</Text>
           </TouchableOpacity>
         </View>
@@ -250,7 +249,7 @@ export default function EarningsScreen({ onBack, onViewHistory }: Props) {
         )}
 
         {/* View payment history button */}
-        <TouchableOpacity style={styles.historyButton} onPress={onViewHistory}>
+        <TouchableOpacity style={styles.historyButton} onPress={() => navigation.navigate("PaymentHistory")}>
           <Text style={styles.historyButtonText}>View payment history</Text>
         </TouchableOpacity>
       </ScrollView>

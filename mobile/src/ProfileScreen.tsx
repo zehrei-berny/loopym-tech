@@ -136,10 +136,10 @@ function EditableField({
 // --- Main Profile Screen ---
 
 type ProfileScreenProps = {
-  onNavigatePayments?: () => void;
+  navigation: any;
 };
 
-export default function ProfileScreen({ onNavigatePayments }: ProfileScreenProps) {
+export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -308,7 +308,7 @@ export default function ProfileScreen({ onNavigatePayments }: ProfileScreenProps
           </View>
         </View>
         <View style={cardStyles.row}>
-          <TouchableOpacity style={cardStyles.card} onPress={onNavigatePayments}>
+          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Earnings")}>
             <PaymentsIcon />
             <Text style={cardStyles.cardLabel}>Payments</Text>
           </TouchableOpacity>
@@ -351,7 +351,7 @@ export default function ProfileScreen({ onNavigatePayments }: ProfileScreenProps
 
       {/* Action items */}
       <View style={styles.actionsSection}>
-        <MenuItem icon={<SecurityIcon />} label="Login & security" />
+        <MenuItem icon={<SecurityIcon />} label="Login & security" onPress={() => navigation.navigate("LoginSecurity")} />
         <MenuItem icon={<FeedbackIcon />} label="Give us feedback" />
         <MenuItem icon={<FeedbackIcon />} label="Request a feature" />
         <MenuItem icon={<DocumentIcon />} label="View FAQ's" />
@@ -377,9 +377,9 @@ export default function ProfileScreen({ onNavigatePayments }: ProfileScreenProps
 
 // --- MenuItem sub-component ---
 
-function MenuItem({ icon, label }: { icon: React.ReactNode; label: string }) {
+function MenuItem({ icon, label, onPress }: { icon: React.ReactNode; label: string; onPress?: () => void }) {
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={styles.menuItemLeft}>
         {icon}
         <Text style={styles.menuItemLabel}>{label}</Text>

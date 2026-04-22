@@ -116,4 +116,16 @@ export const api = {
       method: "POST",
       body: data,
     }),
+
+  // Security
+  updatePassword: (newPassword: string, confirmPassword: string) =>
+    request<{ success: boolean; message: string }>("/api/security/password", {
+      method: "PUT",
+      body: { newPassword, confirmPassword },
+    }),
+
+  deactivateAccount: () =>
+    request<{ success: boolean; message: string }>("/api/security/deactivate", {
+      method: "POST",
+    }),
 };

@@ -69,6 +69,39 @@ app.put("/api/profile", (req, res) => {
 // Payments
 app.use("/api/payments", paymentsRouter);
 
+// --- Security / Auth dummy routes ---
+
+// Update password (dummy)
+app.put("/api/security/password", (req, res) => {
+  const { newPassword, confirmPassword } = req.body;
+
+  if (!newPassword || !confirmPassword) {
+    res.status(400).json({ error: "Both password fields are required" });
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    res.status(400).json({ error: "Passwords do not match" });
+    return;
+  }
+  if (newPassword.length < 6) {
+    res.status(400).json({ error: "Password must be at least 6 characters" });
+    return;
+  }
+
+  // Simulate processing delay
+  setTimeout(() => {
+    res.json({ success: true, message: "Password successfully updated" });
+  }, 1200);
+});
+
+// Deactivate account (dummy)
+app.post("/api/security/deactivate", (_req, res) => {
+  // Simulate processing delay
+  setTimeout(() => {
+    res.json({ success: true, message: "Account deactivation requested" });
+  }, 800);
+});
+
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
