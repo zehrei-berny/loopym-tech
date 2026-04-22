@@ -298,14 +298,14 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Navigation cards grid */}
       <View style={cardStyles.grid}>
         <View style={cardStyles.row}>
-          <View style={cardStyles.card}>
+          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("PersonalInfo")}>
             <PersonalInfoIcon />
             <Text style={cardStyles.cardLabel}>Personal info</Text>
-          </View>
-          <View style={cardStyles.card}>
+          </TouchableOpacity>
+          <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Availability")}>
             <AvailabilityIcon />
             <Text style={cardStyles.cardLabel}>Availability</Text>
-          </View>
+          </TouchableOpacity>
         </View>
         <View style={cardStyles.row}>
           <TouchableOpacity style={cardStyles.card} onPress={() => navigation.navigate("Earnings")}>

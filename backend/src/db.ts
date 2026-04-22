@@ -61,6 +61,14 @@ db.exec(`
     name        TEXT NOT NULL UNIQUE,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS personal_info (
+    id             INTEGER PRIMARY KEY CHECK (id = 1),
+    first_name     TEXT NOT NULL,
+    last_name      TEXT NOT NULL,
+    mobile_number  TEXT NOT NULL DEFAULT '',
+    email          TEXT NOT NULL DEFAULT ''
+  );
 `);
 
 // Seed default profile if empty
@@ -135,6 +143,15 @@ if (teamCount.c === 0) {
   });
 
   seedTeam();
+}
+
+// Seed personal info if empty
+const existingPersonal = db.prepare("SELECT id FROM personal_info WHERE id = 1").get();
+if (!existingPersonal) {
+  db.prepare(`
+    INSERT INTO personal_info (id, first_name, last_name, mobile_number, email)
+    VALUES (1, 'Robert', 'Power', '089 987 7654', 'rob@email.com')
+  `).run();
 }
 
 // Seed skills if empty

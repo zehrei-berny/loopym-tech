@@ -132,6 +132,15 @@ export type Skill = {
 };
 
 
+// ── Personal Info Types ────────────────────────────────────────────
+export type PersonalInfo = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  mobile_number: string;
+  email: string;
+};
+
 // ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
@@ -230,4 +239,13 @@ export const api = {
 
   deleteSkill: (id: number) =>
     request<{ success: boolean }>(`/api/skills/${id}`, { method: "DELETE" }),
+
+  // Personal Info
+  getPersonalInfo: () => request<PersonalInfo>("/api/personal-info"),
+
+  updatePersonalInfoField: (field: string, value: string) =>
+    request<PersonalInfo>(`/api/personal-info/${field}`, {
+      method: "PUT",
+      body: { value },
+    }),
 };
