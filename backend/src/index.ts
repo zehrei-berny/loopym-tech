@@ -4,6 +4,7 @@ import db from "./db";
 import paymentsRouter from "./payments";
 import teamRouter from "./team";
 import skillsRouter from "./skills";
+import personalInfoRouter from "./personal-info";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -134,6 +135,9 @@ app.use("/api/team", teamRouter);
 
 // Skills
 app.use("/api/skills", skillsRouter);
+
+// Personal Info
+app.use("/api/personal-info", personalInfoRouter);
 
 // --- Security / Auth dummy routes ---
 
