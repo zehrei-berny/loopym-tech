@@ -2,7 +2,11 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,6 +28,9 @@ export default function LoginSecurityScreen({ navigation }: Props) {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [toastOpacity] = useState(new Animated.Value(0));
+  const [deactivateModal, setDeactivateModal] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deactivating, setDeactivating] = useState(false);
 
   const showToast = (message: string) => {
     setToast(message);
@@ -64,11 +71,17 @@ export default function LoginSecurityScreen({ navigation }: Props) {
   };
 
   const handleDeactivate = async () => {
+    if (confirmText !== "DEACTIVATE ACCOUNT") return;
+    setDeactivating(true);
     try {
       await api.deactivateAccount();
+      setDeactivateModal(false);
+      setConfirmText("");
       showToast("Account deactivation requested");
     } catch {
       showToast("Failed to deactivate account");
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -158,12 +171,93 @@ export default function LoginSecurityScreen({ navigation }: Props) {
                 </Text>
               </View>
             </View>
-            <Pressable onPress={handleDeactivate}>
+            <Pressable onPress={() => setDeactivateModal(true)}>
               <Text style={styles.actionLink}>Deactivate</Text>
             </Pressable>
           </View>
         )}
+
+        {/* Delete account button */}
+        {!editing && (
+          <Pressable style={styles.deleteButton} onPress={() => setDeactivateModal(true)}>
+            <Text style={styles.deleteButtonIcon}>{"⚠"}</Text>
+            <Text style={styles.deleteButtonText}>Delete account</Text>
+          </Pressable>
+        )}
       </View>
+
+      {/* Deactivate confirmation modal */}
+      <Modal
+        visible={deactivateModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => { if (!deactivating) { setDeactivateModal(false); setConfirmText(""); } }}
+      >
+        <Pressable
+          style={styles.dimmer}
+          onPress={() => { if (!deactivating) { setDeactivateModal(false); setConfirmText(""); } }}
+        />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalWrapper}
+        >
+          <View style={styles.bottomSheet}>
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Deactivate account</Text>
+              <Pressable
+                style={styles.modalCloseButton}
+                onPress={() => { if (!deactivating) { setDeactivateModal(false); setConfirmText(""); } }}
+              >
+                <Text style={styles.modalCloseX}>x</Text>
+              </Pressable>
+            </View>
+
+            {/* Body */}
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.modalBodyText}>
+                Are you sure you want to deactivate your account? This will permanently delete your account and all personal data. This action cannot be undone. To confirm, please type "DEACTIVATE ACCOUNT" below.
+              </Text>
+              <Text style={styles.modalInputLabel}>Confirmation</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder=""
+                value={confirmText}
+                onChangeText={setConfirmText}
+                autoCapitalize="characters"
+                editable={!deactivating}
+              />
+            </ScrollView>
+
+            {/* Footer */}
+            <View style={styles.modalFooter}>
+              <Pressable
+                style={[
+                  styles.deactivateButton,
+                  confirmText === "DEACTIVATE ACCOUNT" ? styles.deactivateButtonActive : styles.deactivateButtonDisabled,
+                ]}
+                onPress={handleDeactivate}
+                disabled={confirmText !== "DEACTIVATE ACCOUNT" || deactivating}
+              >
+                {deactivating && <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />}
+                <Text style={[
+                  styles.deactivateButtonText,
+                  confirmText === "DEACTIVATE ACCOUNT" ? styles.deactivateButtonTextActive : styles.deactivateButtonTextDisabled,
+                ]}>
+                  Deactivate account
+                </Text>
+              </Pressable>
+              <Pressable
+                style={styles.cancelButton}
+                onPress={() => { setDeactivateModal(false); setConfirmText(""); }}
+                disabled={deactivating}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       {/* Toast */}
       {toast && (
@@ -327,5 +421,154 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#fff",
     letterSpacing: 0.175,
+  },
+  // Delete account button
+  deleteButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f3d3d3",
+    borderRadius: 9999,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    gap: 8,
+    alignSelf: "flex-start",
+    height: 38,
+    marginTop: 8,
+  },
+  deleteButtonIcon: {
+    fontSize: 14,
+    color: "#9b2c2c",
+  },
+  deleteButtonText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#101828",
+    lineHeight: 22,
+    letterSpacing: 0.175,
+  },
+  // Modal
+  dimmer: {
+    flex: 1,
+    backgroundColor: "rgba(41,41,58,0.4)",
+  },
+  modalWrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  bottomSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 48,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#101828",
+    lineHeight: 28,
+    letterSpacing: -0.33,
+    flex: 1,
+  },
+  modalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: "#f3f4f6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCloseX: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#101828",
+  },
+  modalBody: {
+    paddingVertical: 8,
+  },
+  modalBodyText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#101828",
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  modalInputLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#101828",
+    letterSpacing: 0.14,
+    lineHeight: 16,
+    marginBottom: 4,
+  },
+  modalInput: {
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#d1d5dc",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#101828",
+    lineHeight: 22,
+    height: 46,
+  },
+  modalFooter: {
+    paddingTop: 16,
+    gap: 16,
+  },
+  deactivateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 9999,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+  },
+  deactivateButtonActive: {
+    backgroundColor: "#f3d3d3",
+  },
+  deactivateButtonDisabled: {
+    backgroundColor: "#f3d3d3",
+    opacity: 0.5,
+  },
+  deactivateButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    lineHeight: 24,
+    letterSpacing: 0.08,
+    textAlign: "center",
+  },
+  deactivateButtonTextActive: {
+    color: "#9b2c2c",
+  },
+  deactivateButtonTextDisabled: {
+    color: "#9ea5b3",
+  },
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: "#d1d5dc",
+    borderRadius: 9999,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#101828",
+    lineHeight: 24,
+    letterSpacing: 0.08,
   },
 });

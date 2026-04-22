@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActionSheetIOS,
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
+  Modal,
   Platform,
+  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -148,6 +151,9 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [documentModal, setDocumentModal] = useState<{ title: string; body: string } | null>(null);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -186,6 +192,25 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
     fetchProfile();
   };
 
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(2500),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setToastMessage(null));
+  };
+
+  const removeAvatar = async () => {
+    try {
+      const updated = await api.updateProfile({ avatar_url: "" });
+      setProfile(updated);
+      showToast("Profile photo removed");
+    } catch {
+      Alert.alert("Error", "Could not remove photo");
+    }
+  };
+
   const launchCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -201,6 +226,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       try {
         const updated = await api.uploadAvatar(result.assets[0].uri);
         setProfile(updated);
+        showToast("Profile photo added");
       } catch {
         Alert.alert("Error", "Could not upload photo");
       }
@@ -223,6 +249,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       try {
         const updated = await api.uploadAvatar(result.assets[0].uri);
         setProfile(updated);
+        showToast("Profile photo added");
       } catch {
         Alert.alert("Error", "Could not upload photo");
       }
@@ -230,23 +257,33 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   };
 
   const pickAvatar = () => {
+    const hasPhoto = !!profile?.avatar_url;
     if (Platform.OS === "ios") {
+      const options = hasPhoto
+        ? ["Cancel", "Take Photo", "Choose from Library", "Remove Photo"]
+        : ["Cancel", "Take Photo", "Choose from Library"];
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ["Cancel", "Take Photo", "Choose from Library"],
+          options,
           cancelButtonIndex: 0,
+          destructiveButtonIndex: hasPhoto ? 3 : undefined,
         },
         (index) => {
           if (index === 1) launchCamera();
           else if (index === 2) launchLibrary();
+          else if (index === 3 && hasPhoto) removeAvatar();
         },
       );
     } else {
-      Alert.alert("Change Profile Photo", undefined, [
+      const buttons: { text: string; onPress?: () => void; style?: "cancel" | "destructive" }[] = [
         { text: "Take Photo", onPress: launchCamera },
         { text: "Choose from Library", onPress: launchLibrary },
-        { text: "Cancel", style: "cancel" },
-      ]);
+      ];
+      if (hasPhoto) {
+        buttons.push({ text: "Remove Photo", onPress: removeAvatar, style: "destructive" });
+      }
+      buttons.push({ text: "Cancel", style: "cancel" });
+      Alert.alert("Change Profile Photo", undefined, buttons);
     }
   };
 
@@ -272,6 +309,7 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
   const stars = Math.round(profile.rating);
 
   return (
+  <>
     <ScrollView
       style={styles.screen}
       contentContainerStyle={styles.scrollContent}
@@ -437,10 +475,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
         <MenuItem icon={<SecurityIcon />} label="Login & security" onPress={() => navigation.navigate("LoginSecurity")} />
         <MenuItem icon={<FeedbackIcon />} label="Give us feedback" />
         <MenuItem icon={<FeedbackIcon />} label="Request a feature" />
-        <MenuItem icon={<DocumentIcon />} label="View FAQ's" />
-        <MenuItem icon={<DocumentIcon />} label="Terms of service" />
-        <MenuItem icon={<DocumentIcon />} label="Privacy policy" />
-        <MenuItem icon={<DocumentIcon />} label="Refund policy" />
+        <MenuItem icon={<DocumentIcon />} label="View FAQ's" onPress={() => setDocumentModal({ title: "FAQ's", body: "Q: How do I update my profile?\nA: Navigate to Personal Info from the Profile screen to update your name, email, and phone number.\n\nQ: How do I add a payout method?\nA: Go to Payments > Payout Methods and tap \"Add a payout method\".\n\nQ: Can I change my profile photo?\nA: Yes, tap the edit button on your avatar to take a photo or choose one from your library.\n\nQ: How do I manage my availability?\nA: Use the Availability card on the Profile screen to set your weekly schedule and time off.\n\nQ: How do I deactivate my account?\nA: Go to Login & security and select Deactivate account." })} />
+        <MenuItem icon={<DocumentIcon />} label="Terms of service" onPress={() => setDocumentModal({ title: "Terms of service", body: "By using this application, you agree to the following terms and conditions. These terms govern your access to and use of the Loopym Tech platform, including any content, functionality, and services offered.\n\n1. Account Registration: You must provide accurate information when creating your account and keep it up to date.\n\n2. Acceptable Use: You agree not to use the platform for any unlawful purpose or in any way that could damage, disable, or impair the service.\n\n3. Payment Terms: All payments processed through the platform are subject to our payment processing policies and applicable fees.\n\n4. Intellectual Property: All content and materials on the platform are owned by Loopym Tech and protected by applicable intellectual property laws.\n\n5. Termination: We reserve the right to terminate or suspend your account at any time for any reason." })} />
+        <MenuItem icon={<DocumentIcon />} label="Privacy policy" onPress={() => setDocumentModal({ title: "Privacy policy", body: "Your privacy is important to us. This privacy policy explains how we collect, use, and protect your personal information.\n\nInformation We Collect: We collect information you provide directly, such as your name, email address, phone number, and payment details.\n\nHow We Use Your Information: We use your information to provide and improve our services, process payments, and communicate with you.\n\nData Security: We implement appropriate security measures to protect your personal information against unauthorized access or disclosure.\n\nData Retention: We retain your personal data only for as long as necessary to provide our services and fulfill the purposes outlined in this policy.\n\nYour Rights: You have the right to access, update, or delete your personal information at any time through your account settings." })} />
+        <MenuItem icon={<DocumentIcon />} label="Refund policy" onPress={() => setDocumentModal({ title: "Refund policy", body: "We want you to be satisfied with our services. If you are not satisfied, you may request a refund under the following conditions.\n\nEligibility: Refund requests must be made within 30 days of the original payment date.\n\nProcess: To request a refund, contact our support team through the \"Give us feedback\" option. Include your payment details and reason for the refund request.\n\nTimeline: Approved refunds will be processed within 5-10 business days and returned to the original payment method.\n\nExceptions: Certain services may not be eligible for refunds once they have been fully rendered. These will be clearly communicated at the time of purchase." })} />
       </View>
 
       {/* Divider */}
@@ -455,6 +493,37 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
       {/* Version */}
       <Text style={styles.versionText}>Version 1.1.4</Text>
     </ScrollView>
+
+    {/* Document bottom sheet modal */}
+    <Modal
+      visible={!!documentModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setDocumentModal(null)}
+    >
+      <Pressable style={modalStyles.dimmer} onPress={() => setDocumentModal(null)} />
+      <View style={modalStyles.bottomSheet}>
+        <View style={modalStyles.header}>
+          <View style={{ width: 32 }} />
+          <Text style={modalStyles.headerTitle}>{documentModal?.title}</Text>
+          <Pressable style={modalStyles.closeButton} onPress={() => setDocumentModal(null)}>
+            <Text style={modalStyles.closeX}>x</Text>
+          </Pressable>
+        </View>
+        <ScrollView style={modalStyles.body} showsVerticalScrollIndicator={false}>
+          <Text style={modalStyles.bodyText}>{documentModal?.body}</Text>
+        </ScrollView>
+      </View>
+    </Modal>
+
+    {/* Toast / Snackbar */}
+    {toastMessage && (
+      <Animated.View style={[toastStyles.container, { opacity: toastOpacity }]}>
+        <Text style={toastStyles.icon}>{"✓"}</Text>
+        <Text style={toastStyles.text}>{toastMessage}</Text>
+      </Animated.View>
+    )}
+  </>
   );
 }
 
@@ -860,5 +929,97 @@ const editStyles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     marginTop: 4,
+  },
+});
+
+// --- Modal styles ---
+const modalStyles = StyleSheet.create({
+  dimmer: {
+    flex: 1,
+    backgroundColor: "rgba(41,41,58,0.4)",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.bgElevated,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 48,
+    maxHeight: "80%",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.textHeading,
+    lineHeight: 20,
+    letterSpacing: -0.16,
+    textAlign: "center",
+    flex: 1,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    backgroundColor: "#fcfcfd",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeX: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.textHeading,
+  },
+  body: {
+    paddingTop: 16,
+  },
+  bodyText: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: colors.textBody,
+    lineHeight: 22,
+  },
+});
+
+// --- Toast styles ---
+const toastStyles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    bottom: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: colors.brandStrong,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    shadowColor: "#1D293D",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  icon: {
+    fontSize: 16,
+    color: "#4ade80",
+    fontWeight: "700",
+  },
+  text: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "#fff",
+    flex: 1,
+    lineHeight: 20,
   },
 });
