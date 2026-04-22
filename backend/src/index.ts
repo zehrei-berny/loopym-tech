@@ -3,6 +3,7 @@ import cors from "cors";
 import db from "./db";
 import paymentsRouter from "./payments";
 import teamRouter from "./team";
+import skillsRouter from "./skills";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -130,6 +131,9 @@ app.use("/api/payments", paymentsRouter);
 
 // Team
 app.use("/api/team", teamRouter);
+
+// Skills
+app.use("/api/skills", skillsRouter);
 
 // --- Security / Auth dummy routes ---
 

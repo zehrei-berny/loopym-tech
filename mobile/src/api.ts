@@ -124,6 +124,14 @@ export type AddTeamMemberData = {
   role?: string;
 };
 
+// ── Skill Types ────────────────────────────────────────────────────
+export type Skill = {
+  id: number;
+  name: string;
+  created_at: string;
+};
+
+
 // ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
@@ -213,4 +221,13 @@ export const api = {
     request<AvailabilityResponse>(`/api/availability/time-off/${id}`, {
       method: "DELETE",
     }),
+
+  // Skills
+  getSkills: () => request<Skill[]>("/api/skills"),
+
+  addSkill: (name: string) =>
+    request<Skill>("/api/skills", { method: "POST", body: { name } }),
+
+  deleteSkill: (id: number) =>
+    request<{ success: boolean }>(`/api/skills/${id}`, { method: "DELETE" }),
 };

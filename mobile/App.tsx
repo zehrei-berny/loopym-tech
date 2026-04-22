@@ -9,6 +9,7 @@ import LoginSecurityScreen from "./src/screens/LoginSecurityScreen";
 import AvailabilityScreen from "./src/screens/AvailabilityScreen";
 import TeamScreen from "./src/screens/TeamScreen";
 import TeamMemberDetailScreen from "./src/screens/TeamMemberDetailScreen";
+import SkillsCertificationsScreen from "./src/screens/SkillsCertificationsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function App() {
           </Stack.Screen>
           <Stack.Screen name="Team" component={TeamScreen} />
           <Stack.Screen name="TeamMemberDetail" component={TeamMemberDetailScreen} />
+          <Stack.Screen name="SkillsCertifications" component={SkillsCertificationsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="dark" />
