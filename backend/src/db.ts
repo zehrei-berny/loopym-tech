@@ -26,12 +26,16 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS payout_methods (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    type        TEXT NOT NULL DEFAULT 'bank',
-    label       TEXT NOT NULL,
-    last_four   TEXT NOT NULL DEFAULT '',
-    is_default  INTEGER NOT NULL DEFAULT 0,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    type                TEXT NOT NULL DEFAULT 'bank',
+    label               TEXT NOT NULL,
+    currency            TEXT NOT NULL DEFAULT 'AUSD',
+    account_holder_name TEXT NOT NULL DEFAULT '',
+    routing_number      TEXT NOT NULL DEFAULT '',
+    account_number      TEXT NOT NULL DEFAULT '',
+    account_type        TEXT NOT NULL DEFAULT 'savings',
+    is_default          INTEGER NOT NULL DEFAULT 0,
+    created_at          TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
   CREATE TABLE IF NOT EXISTS payments (

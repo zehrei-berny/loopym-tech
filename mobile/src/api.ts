@@ -81,6 +81,19 @@ export type PaymentHistoryData = {
   dates: { date: string; payments: Payment[] }[];
 };
 
+export type PayoutMethod = {
+  id: number;
+  type: string;
+  label: string;
+  currency: string;
+  account_holder_name: string;
+  routing_number: string;
+  account_number: string;
+  account_type: string;
+  is_default: number;
+  created_at: string;
+};
+
 // ── Availability Types ──────────────────────────────────────────────
 export type DaySlot = {
   day: string;
@@ -130,12 +143,33 @@ export const api = {
       `/api/payments/history?year=${year}&month=${month}`
     ),
 
-  addPayoutMethod: (
-    data: { type?: string; label?: string; last_four?: string } = {}
-  ) =>
-    request<{ id: number }>("/api/payments/payout-method", {
+  getPayoutMethods: () => request<PayoutMethod[]>("/api/payments/payout-methods"),
+
+  getPayoutMethod: (id: number) =>
+    request<PayoutMethod>(`/api/payments/payout-methods/${id}`),
+
+  addPayoutMethod: (data: {
+    type: string;
+    label: string;
+    currency?: string;
+    account_holder_name: string;
+    routing_number: string;
+    account_number: string;
+    account_type: string;
+  }) =>
+    request<PayoutMethod>("/api/payments/payout-method", {
       method: "POST",
       body: data,
+    }),
+
+  setDefaultPayoutMethod: (id: number) =>
+    request<PayoutMethod[]>(`/api/payments/payout-methods/${id}/default`, {
+      method: "PUT",
+    }),
+
+  deletePayoutMethod: (id: number) =>
+    request<PayoutMethod[]>(`/api/payments/payout-methods/${id}`, {
+      method: "DELETE",
     }),
 
   // Security
