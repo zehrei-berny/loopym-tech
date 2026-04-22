@@ -42,6 +42,12 @@ db.exec(`
     date        TEXT NOT NULL,
     created_at  TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS skills (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT NOT NULL UNIQUE,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default profile if empty
@@ -88,6 +94,20 @@ if (paymentCount.c === 0) {
   });
 
   seedPayments();
+}
+
+// Seed skills if empty
+const skillCount = db.prepare("SELECT COUNT(*) as c FROM skills").get() as { c: number };
+if (skillCount.c === 0) {
+  const insertSkill = db.prepare("INSERT INTO skills (name) VALUES (?)");
+  const seedSkills = db.transaction(() => {
+    insertSkill.run("Chemical maintenance");
+    insertSkill.run("Heating specialist");
+    insertSkill.run("Equipment installation & repairs");
+    insertSkill.run("Pool cleaning");
+    insertSkill.run("Algae removal");
+  });
+  seedSkills();
 }
 
 export default db;

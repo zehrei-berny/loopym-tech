@@ -81,6 +81,13 @@ export type PaymentHistoryData = {
   dates: { date: string; payments: Payment[] }[];
 };
 
+// ── Skill Types ────────────────────────────────────────────────────
+export type Skill = {
+  id: number;
+  name: string;
+  created_at: string;
+};
+
 // ── API ─────────────────────────────────────────────────────────────
 export const api = {
   getHealth: () => request<{ status: string; timestamp: string }>("/health"),
@@ -128,4 +135,13 @@ export const api = {
     request<{ success: boolean; message: string }>("/api/security/deactivate", {
       method: "POST",
     }),
+
+  // Skills
+  getSkills: () => request<Skill[]>("/api/skills"),
+
+  addSkill: (name: string) =>
+    request<Skill>("/api/skills", { method: "POST", body: { name } }),
+
+  deleteSkill: (id: number) =>
+    request<{ success: boolean }>(`/api/skills/${id}`, { method: "DELETE" }),
 };

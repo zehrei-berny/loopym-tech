@@ -318,10 +318,10 @@ export default function ProfileScreen({ navigation }: ProfileScreenProps) {
           </View>
         </View>
         <View style={cardStyles.fullRow}>
-          <View style={cardStyles.cardFull}>
+          <TouchableOpacity style={cardStyles.cardFull} onPress={() => navigation.navigate("SkillsCertifications")}>
             <SkillsIcon />
             <Text style={cardStyles.cardLabel}>Skills & certifications</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
